@@ -108,15 +108,23 @@ const watch = function() {
 //Processus qui lance le serveur Web local et qui recharge la page lorsqu'il y a un changement avec les fichiers CSS, HTML et JS
 const serveur = function () {
 
+    var navigateur = "Firefox";
+    // Si la plateform est un OSX
+    if(os.platform() == "darwin"){
+        navigateur = ["firefox", "google chrome"];
+    }
+    else {
+        navigateur = ["firefox", "chrome"];
+    }
+
+
     //Lancement du serveur
     browserSync.init({
         port: 3000,
         server: "./dist/",
         ghostMode: false,
         notify: false,
-        //browser: ["firefox"]
-        //browser: ["google chrome"]
-        browser: ["firefox", "google chrome"]
+        browser: navigateur
     });
 
     //Vérification si quelque chose change et recharge la page
