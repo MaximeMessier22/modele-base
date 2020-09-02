@@ -6,15 +6,13 @@ const gulp = require('gulp');
 const browserSync = require('browser-sync').create();
 const newer = require('gulp-newer');                  // https://www.npmjs.com/package/gulp-newer
 const imagemin = require('gulp-imagemin');            // https://www.npmjs.com/package/gulp-imagemin
-const htmlclean = require('gulp-htmlclean');          // https://www.npmjs.com/package/gulp-htmlclean
 const stripdebug = require('gulp-strip-debug');       // https://www.npmjs.com/package/gulp-strip-debug
-const uglify = require('gulp-uglify');                // https://www.npmjs.com/package/gulp-uglify
 const sourcemaps = require('gulp-sourcemaps');        // https://www.npmjs.com/package/gulp-sourcemaps
 const sass = require('gulp-sass');                    // https://www.npmjs.com/package/gulp-sass
 const postcss = require('gulp-postcss');              // https://github.com/postcss/gulp-postcss
 const autoprefixer = require('autoprefixer');         //https://www.npmjs.com/package/autoprefixer
-const cssnano = require('cssnano');                   // https://www.npmjs.com/package/cssnano
 const os = require('os');
+const normalize = require("sassy-normalize").includePaths;   //https://www.npmjs.com/package/sassy-normalize
 
 
 
@@ -22,13 +20,6 @@ const os = require('os');
 const folder = {
     src: 'src/',
     dist: 'dist/'
-};
-
-
-// Commande pour copier le normalize.css du dossier node-modules vers le dossier dist
-const copier_normalize = function(){
-    return gulp.src('node_modules/normalize.css/normalize.css')
-        .pipe(gulp.dest(folder.dist +'/css'))
 };
 
 // Processus d’optimisation des images
@@ -47,7 +38,6 @@ const optimiser_html = function() {
 
     return gulp.src(folder.src + '/**/*.html')      //Récupère tous les fichiers du dossier et des sous-dossiers.
         .pipe(newer(out))                           //Permets de traiter seulement les nouveaux fichiers ou ceux qui ont été modifiés.
-        .pipe(htmlclean())                          //Reformate le html sur une seule ligne
         .pipe(gulp.dest(out));                      //Copie tous les fichiers optimisés vers la destination.
 
 
@@ -58,7 +48,6 @@ const optimiser_css = function() {
 
     var postCssOpts = [
         autoprefixer({ overrideBrowserslist: ['last 2 versions', '> 2%'] })
-        //,cssnano
     ];
 
     return gulp.src(folder.src + 'scss/main.scss')
@@ -67,7 +56,8 @@ const optimiser_css = function() {
             outputStyle: 'expanded',
             imagePath: 'images/',
             precision: 4,
-            errLogToConsole: true
+            errLogToConsole: true,
+            includePaths: [normalize]
         }))
         .pipe(postcss(postCssOpts))                 //Permet de faire des actions sur le css comme l'autoprefixeur et la compression du code
         .pipe(sourcemaps.write())                   //Permets de retrouver la ligne problématique dans le fichier original.
@@ -84,7 +74,6 @@ const optimiser_js = function() {
         .pipe(sourcemaps.init())                    //Permets de retrouver la ligne problématique dans le fichier original.
         //TODO enlever le commentaire de stripdebug avant de mettre en ligne
         //.pipe(stripdebug())                         //Supprime tous les commentaires et les lignes de « débogage »
-        .pipe(uglify())                             //Reformate le script sur une seule ligne
         .pipe(sourcemaps.write())                   //Permets de retrouver la ligne problématique dans le fichier original.
         .pipe(gulp.dest(out + 'js/'));              //Copie tous les fichiers optimisés vers la destination.
 };
@@ -136,7 +125,6 @@ const serveur = function () {
 };
 
 
-gulp.task('copier_normalize', copier_normalize);
 gulp.task('optimiser_images', optimiser_images);
 gulp.task('optimiser_html', gulp.series('optimiser_images', optimiser_html));
 gulp.task('optimiser_css', gulp.series('optimiser_images', optimiser_css));
@@ -146,7 +134,7 @@ gulp.task('serveur', serveur);
 
 
 // Processus pour exécuter chaque tâche peut importe l'ordre
-gulp.task('execution', gulp.parallel('optimiser_html', 'optimiser_css', 'optimiser_js', 'copier_normalize'));
+gulp.task('execution', gulp.parallel('optimiser_html', 'optimiser_css', 'optimiser_js'));
 
 
 // Processus par défaut qui exécute chaque tâche une après l'autre
